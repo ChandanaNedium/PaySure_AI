@@ -187,3 +187,28 @@ class AuditLog(Base):
     details = Column(Text, nullable=True)
     ip_address = Column(String(50), default="127.0.0.1")
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class DisputeEvidenceSubmission(Base):
+    """Persistent record of every evidence submission attempt for a dispute."""
+    __tablename__ = "dispute_evidence_submissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dispute_id = Column(Integer, ForeignKey("disputes.id"), nullable=False)
+    paypal_dispute_id = Column(String(128), nullable=False)
+    transaction_ref = Column(String(64), nullable=True)
+
+    # Status: DRAFT, SUBMITTED, FAILED
+    submission_status = Column(String(50), default="DRAFT")
+    defense_statement_summary = Column(Text, nullable=True)
+    evidence_documents = Column(JSON, nullable=True)  # list of document names
+    submission_reference = Column(String(128), nullable=True)  # unique submission ID
+
+    # Whether the backend simulator or real PayPal confirmed the submission
+    is_simulated = Column(Boolean, default=True)
+    paypal_response = Column(Text, nullable=True)
+
+    submitted_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    dispute = relationship("Dispute", backref="submissions")
+

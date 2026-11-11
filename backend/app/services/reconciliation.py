@@ -3,25 +3,30 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from app import models
 
+
 class ReconciliationService:
     def get_reconciliation_summary(self, db: Session) -> Dict[str, Any]:
         records = db.query(models.ReconciliationRecord).all()
         total_records = len(records)
-        matched_records = sum(1 for r in records if r.matched)
-        mismatched_records = total_records - matched_records
-        resolved_records = sum(1 for r in records if r.resolution_status == "RESOLVED")
-        
+
+        # ALIGNED = both internal_status AND paypal_status are COMPLETED
+        aligned_records = sum(
+            1 for r in records
+            if r.internal_status == 'COMPLETED' and r.paypal_status == 'COMPLETED'
+        )
+        not_aligned_records = total_records - aligned_records
+
+        # Reconciliation health % based on ALIGNED count only
+        health_pct = round(aligned_records / max(total_records, 1) * 100, 1)
+
         return {
             "total_records": total_records,
-            "matched_records": matched_records,
-            "mismatched_records": mismatched_records,
-            "resolved_records": resolved_records,
-            "reconciliation_health_pct": round((matched_records + resolved_records) / max(total_records, 1) * 100, 1),
-            "discrepancy_types": {
-                "STATUS_MISMATCH": sum(1 for r in records if r.discrepancy_type == "STATUS_MISMATCH"),
-                "ORPHANED_EVENT": sum(1 for r in records if r.discrepancy_type == "ORPHANED_EVENT"),
-                "TIMING_DRIFT": sum(1 for r in records if r.discrepancy_type == "TIMING_DRIFT")
-            }
+            "aligned_records": aligned_records,
+            "not_aligned_records": not_aligned_records,
+            "reconciliation_health_pct": health_pct,
+            # Keep for backwards compat but deprecate
+            "matched_records": aligned_records,
+            "mismatched_records": not_aligned_records,
         }
 
     def reconcile_record(self, record_id: int, action: str, db: Session) -> Dict[str, Any]:
@@ -46,7 +51,9 @@ class ReconciliationService:
             "record_id": record.id,
             "transaction_ref": record.transaction_ref,
             "action": action,
+            "is_aligned": record.internal_status == "COMPLETED" and record.paypal_status == "COMPLETED",
             "message": f"Reconciliation resolved via {action}. Internal and PayPal ledgers aligned."
         }
+
 
 reconciliation_service = ReconciliationService()

@@ -8,12 +8,28 @@ import {
   Clock,
   AlertTriangle,
   Send,
-  Download,
   Copy,
   ChevronRight,
-  ExternalLink,
-  Lock
+  Lock,
+  History,
+  RefreshCw,
+  Eye,
+  X
 } from 'lucide-react';
+
+function StatusChip({ status }) {
+  const color =
+    status === 'SUBMITTED'
+      ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      : status === 'FAILED'
+      ? 'bg-rose-100 text-rose-800 border-rose-200'
+      : 'bg-slate-100 text-slate-700 border-slate-200';
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${color}`}>
+      {status}
+    </span>
+  );
+}
 
 export default function DisputesPage() {
   const { showToast } = useDemo();
@@ -23,6 +39,10 @@ export default function DisputesPage() {
   const [statement, setStatement] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // Submission history state
+  const [allHistory, setAllHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [previewSubmission, setPreviewSubmission] = useState(null);
 
   const fetchDisputes = async () => {
     setLoading(true);
@@ -39,8 +59,21 @@ export default function DisputesPage() {
     }
   };
 
+  const fetchAllHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await api.get('/disputes/submissions/all');
+      setAllHistory(res.data);
+    } catch (err) {
+      console.error('Error fetching submission history', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchDisputes();
+    fetchAllHistory();
   }, []);
 
   const selectDisputeItem = async (d) => {
@@ -56,6 +89,10 @@ export default function DisputesPage() {
 
   const handleSubmitEvidence = async () => {
     if (!selectedDispute) return;
+    if (!statement.trim()) {
+      showToast('Defense statement cannot be empty.', 'error');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await api.post(`/disputes/${selectedDispute.id}/submit`, {
@@ -63,8 +100,10 @@ export default function DisputesPage() {
       });
       showToast(res.data.message || 'Evidence package submitted to PayPal Resolution Center.', 'success');
       fetchDisputes();
+      fetchAllHistory(); // refresh history after submission
     } catch (err) {
-      showToast('Error submitting evidence', 'error');
+      const errMsg = err?.response?.data?.detail || 'Error submitting evidence';
+      showToast(errMsg, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -223,6 +262,177 @@ export default function DisputesPage() {
           )}
         </div>
       </div>
+
+      {/* ===== Evidence Submission History Section ===== */}
+      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-soft">
+        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-brand-paypal" />
+              <h3 className="text-base font-bold text-slate-900">Evidence Submission History</h3>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              All evidence submissions are stored persistently. Refreshing the page will not remove this history.
+            </p>
+          </div>
+          <button
+            onClick={fetchAllHistory}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-soft transition self-start sm:self-auto"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${historyLoading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          {historyLoading ? (
+            <div className="p-8 text-center text-slate-400 text-sm">
+              <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin text-brand-paypal" />
+              Loading submission history...
+            </div>
+          ) : allHistory.length === 0 ? (
+            <div className="p-10 text-center text-slate-400">
+              <History className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+              <p className="text-sm font-semibold">No submissions yet</p>
+              <p className="text-xs mt-1">Submit an evidence response above to record it here.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
+                  <th className="py-3 px-4">Submission Ref</th>
+                  <th className="py-3 px-4">Dispute ID</th>
+                  <th className="py-3 px-4">Transaction Ref</th>
+                  <th className="py-3 px-4">Submitted At</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Documents</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4 text-right">Review</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {allHistory.map((s) => (
+                  <tr key={s.id} className="hover:bg-slate-50 transition">
+                    <td className="py-3 px-4 font-mono font-bold text-brand-navy text-[11px]">
+                      {s.submission_reference || `SUB-${s.id}`}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-700">
+                      {s.dispute_id}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                      {s.transaction_ref || '—'}
+                    </td>
+                    <td className="py-3 px-4 text-[11px] text-slate-500">
+                      {s.submitted_at ? new Date(s.submitted_at).toLocaleString() : '—'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <StatusChip status={s.submission_status} />
+                    </td>
+                    <td className="py-3 px-4 text-[11px] text-slate-500">
+                      {(s.evidence_documents || []).length} document{(s.evidence_documents || []).length !== 1 ? 's' : ''}
+                    </td>
+                    <td className="py-3 px-4">
+                      {s.is_simulated ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          SIMULATED
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                          LIVE
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => setPreviewSubmission(s)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold ml-auto"
+                      >
+                        <Eye className="w-3 h-3" />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* Submission Preview Modal */}
+      {previewSubmission && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Submission Details</h3>
+                <p className="text-xs text-slate-500 mt-0.5 font-mono">{previewSubmission.submission_reference}</p>
+              </div>
+              <button
+                onClick={() => setPreviewSubmission(null)}
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold mb-0.5">Dispute ID</span>
+                  <p className="font-mono font-bold text-slate-800">{previewSubmission.dispute_id}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold mb-0.5">Transaction Ref</span>
+                  <p className="font-mono font-bold text-slate-800">{previewSubmission.transaction_ref || '—'}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold mb-0.5">Submitted At</span>
+                  <p className="text-slate-700">{new Date(previewSubmission.submitted_at).toLocaleString()}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold mb-0.5">Status</span>
+                  <StatusChip status={previewSubmission.submission_status} />
+                </div>
+              </div>
+
+              {/* Evidence Documents */}
+              <div>
+                <span className="text-slate-400 block text-[11px] uppercase font-bold mb-2">Evidence Documents Included</span>
+                <div className="space-y-1.5">
+                  {(previewSubmission.evidence_documents || []).map((doc, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="text-slate-700">{doc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Defense Statement Summary */}
+              <div>
+                <span className="text-slate-400 block text-[11px] uppercase font-bold mb-2">Response Summary</span>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-slate-700 leading-relaxed whitespace-pre-wrap text-[11px]">
+                  {previewSubmission.defense_statement_summary}
+                </div>
+              </div>
+
+              {/* PayPal Response */}
+              {previewSubmission.paypal_response && (
+                <div>
+                  <span className="text-slate-400 block text-[11px] uppercase font-bold mb-2">PayPal API Response</span>
+                  <div className={`p-3 rounded-xl border text-[11px] ${
+                    previewSubmission.is_simulated
+                      ? 'bg-amber-50 border-amber-200 text-amber-800'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  }`}>
+                    {previewSubmission.paypal_response}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DemoProvider, useDemo } from './context/DemoContext';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
-import JudgeDemoBar from './components/demo/JudgeDemoBar';
 import PaySureCopilot from './components/assistant/PaySureCopilot';
 
 import LandingPage from './pages/LandingPage';
@@ -79,10 +78,7 @@ function AppContent() {
   // Main Authenticated / Demo Layout
   return (
     <div className="min-h-screen bg-brand-lightBg flex flex-col">
-      {/* 1. Top Hackathon Judge Demo Bar */}
-      <JudgeDemoBar onNavigateToRecovery={handleSelectTransactionForRecovery} />
-
-      {/* 2. Top Global Navigation Header */}
+      {/* 1. Top Global Navigation Header */}
       <Navbar onNavigate={setCurrentTab} currentTab={currentTab} />
 
       {/* 3. Main Workspace Area: Sidebar + Content */}

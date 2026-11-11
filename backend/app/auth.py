@@ -34,8 +34,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def get_current_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[models.User]:
     if not token:
-        # Default fallback to demo judge user for seamless review if no header is sent
-        user = db.query(models.User).filter(models.User.email == "judge@paysure.ai").first()
+        # Default fallback to merchant user for seamless navigation if no header is sent
+        user = db.query(models.User).filter(models.User.email == "merchant@paysure.ai").first()
         if user:
             return user
         return None

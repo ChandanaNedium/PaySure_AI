@@ -7,6 +7,13 @@ from app.services.dispute_service import dispute_service
 
 router = APIRouter(prefix="/disputes", tags=["Dispute Assistant"])
 
+
+@router.get("/submissions/all")
+def get_all_submission_history(db: Session = Depends(get_db)):
+    """Get all evidence submissions across all disputes, most recent first."""
+    return dispute_service.get_all_submission_history(db)
+
+
 @router.get("", response_model=List[schemas.DisputeResponse])
 def get_disputes(db: Session = Depends(get_db)):
     disputes = db.query(models.Dispute).order_by(models.Dispute.created_at.desc()).all()
@@ -16,17 +23,19 @@ def get_disputes(db: Session = Depends(get_db)):
             d.transaction_ref = d.transaction.transaction_ref
     return disputes
 
+
 @router.get("/{dispute_id}/evidence-package")
 def get_evidence_package(dispute_id: int, db: Session = Depends(get_db)):
     dispute = db.query(models.Dispute).filter(models.Dispute.id == dispute_id).first()
     if not dispute:
         raise HTTPException(status_code=404, detail="Dispute not found")
-    
+
     tx = dispute.transaction
     if not tx:
         raise HTTPException(status_code=404, detail="Associated transaction not found")
-        
+
     return dispute_service.generate_evidence_package(dispute, tx)
+
 
 @router.post("/{dispute_id}/submit")
 def submit_dispute_evidence(
@@ -35,4 +44,15 @@ def submit_dispute_evidence(
     db: Session = Depends(get_db)
 ):
     statement = payload.get("defense_statement", "")
+    if not statement.strip():
+        raise HTTPException(status_code=400, detail="Defense statement cannot be empty.")
     return dispute_service.submit_defense(dispute_id, statement, db)
+
+
+@router.get("/{dispute_id}/submission-history")
+def get_submission_history(dispute_id: int, db: Session = Depends(get_db)):
+    """Get all evidence submission attempts for a specific dispute."""
+    dispute = db.query(models.Dispute).filter(models.Dispute.id == dispute_id).first()
+    if not dispute:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    return dispute_service.get_submission_history(dispute_id, db)

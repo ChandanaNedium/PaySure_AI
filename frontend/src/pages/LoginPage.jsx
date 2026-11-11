@@ -23,14 +23,14 @@ export default function LoginPage({ onNavigateToDashboard, onNavigateToRegister 
     }
   };
 
-  const handleJudgeInstantLogin = async (role = 'merchant') => {
+  const handleQuickLogin = async (role = 'merchant') => {
     setLoading(true);
     setError('');
     try {
       await demoLogin(role);
       onNavigateToDashboard();
     } catch (err) {
-      setError('Error initiating instant demo login.');
+      setError('Error initiating account login.');
     } finally {
       setLoading(false);
     }
@@ -52,28 +52,28 @@ export default function LoginPage({ onNavigateToDashboard, onNavigateToRegister 
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-6 shadow-soft rounded-3xl border border-slate-200 sm:px-10 space-y-6">
-          {/* Instant 1-Click Judge Access Banner */}
+          {/* Quick Account Access Banner */}
           <div className="p-4 rounded-2xl bg-gradient-to-br from-brand-navy to-slate-900 text-white shadow-md">
             <div className="flex items-center gap-1.5 text-xs font-bold text-brand-cyan mb-1">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Hackathon Judge Quick Access</span>
+              <span>Quick Account Access</span>
             </div>
             <p className="text-[11px] text-slate-300 mb-3">
-              1-click instant login with all 7 demo scenarios pre-loaded.
+              1-click switch between Merchant and Customer accounts.
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => handleJudgeInstantLogin('merchant')}
+                onClick={() => handleQuickLogin('merchant')}
                 disabled={loading}
                 className="py-2 px-3 rounded-xl bg-brand-cyan text-brand-darkNavy text-xs font-bold hover:scale-105 transition flex items-center justify-center gap-1.5"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Judge Login</span>
+                <span>Merchant View</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleJudgeInstantLogin('customer')}
+                onClick={() => handleQuickLogin('customer')}
                 disabled={loading}
                 className="py-2 px-3 rounded-xl bg-white/10 text-white hover:bg-white/20 text-xs font-medium transition flex items-center justify-center gap-1.5"
               >

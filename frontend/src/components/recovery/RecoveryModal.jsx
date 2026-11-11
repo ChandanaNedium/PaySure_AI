@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { X, ShieldCheck, ArrowRight, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
 import { useDemo } from '../../context/DemoContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RecoveryModal({ analysis, isOpen, onClose, onRecoverySuccess }) {
   const { showToast } = useDemo();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
-  const [authorizer, setAuthorizer] = useState('Merchant Admin (judge@paysure.ai)');
+  const [authorizer, setAuthorizer] = useState(
+    user?.email ? `${user.full_name || 'Merchant Admin'} (${user.email})` : 'Merchant Admin (merchant@paysure.ai)'
+  );
 
   if (!isOpen || !analysis) return null;
 

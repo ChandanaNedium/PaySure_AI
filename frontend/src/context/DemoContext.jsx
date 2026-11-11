@@ -35,7 +35,7 @@ export const DemoProvider = ({ children }) => {
 
   const selectScenario = (scenario) => {
     setActiveScenario(scenario);
-    showToast(`Loaded Judge Scenario: ${scenario.title}`, 'info');
+    showToast(`Loaded Scenario: ${scenario.title}`, 'info');
   };
 
   const resetDemo = async () => {

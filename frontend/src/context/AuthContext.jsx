@@ -19,14 +19,14 @@ export const AuthProvider = ({ children }) => {
           logout();
         }
       } else {
-        // Pre-authenticate as Judge in Demo mode if not logged in
+        // Pre-authenticate with default merchant account if not logged in
         try {
           const demoRes = await api.post('/auth/demo-login/merchant');
           localStorage.setItem('paysure_token', demoRes.data.access_token);
           setToken(demoRes.data.access_token);
           setUser(demoRes.data.user);
         } catch (err) {
-          console.warn('Could not auto-login demo judge', err);
+          console.warn('Could not auto-login demo account', err);
         }
       }
       setLoading(false);

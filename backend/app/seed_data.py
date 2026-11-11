@@ -5,40 +5,33 @@ from app.auth import get_password_hash
 
 def seed_database(db: Session):
     # Check if data already exists
-    if db.query(models.User).filter(models.User.email == "judge@paysure.ai").first():
+    if db.query(models.User).filter(models.User.email == "merchant@paysure.ai").first():
         print("[Seed] Database already seeded.")
         return
 
     print("[Seed] Seeding PaySure AI realistic demo data...")
 
     # 1. Users
-    judge_user = models.User(
-        email="judge@paysure.ai",
-        full_name="Hackathon Judge",
+    merchant_user = models.User(
+        email="merchant@paysure.ai",
+        full_name="Merchant Account",
         role="merchant",
         company_name="Apex Global Commerce",
         hashed_password=get_password_hash("password123")
     )
-    merchant_user = models.User(
-        email="merchant@paysure.ai",
-        full_name="Sarah Jenkins",
-        role="merchant",
-        company_name="OmniPay Retail Solutions",
-        hashed_password=get_password_hash("password123")
-    )
     customer_user = models.User(
         email="customer@paysure.ai",
-        full_name="David Miller",
+        full_name="Customer Account",
         role="customer",
         company_name=None,
         hashed_password=get_password_hash("password123")
     )
-    db.add_all([judge_user, merchant_user, customer_user])
+    db.add_all([merchant_user, customer_user])
     db.flush()
 
     # 2. Merchant Profile
     merchant = models.Merchant(
-        user_id=judge_user.id,
+        user_id=merchant_user.id,
         business_name="Apex Global Commerce",
         paypal_merchant_id="PP-MERCHANT-882194",
         currency="USD",
@@ -347,7 +340,7 @@ def seed_database(db: Session):
 
     # 9. Audit Logs
     audit1 = models.AuditLog(
-        user_email="judge@paysure.ai",
+        user_email="merchant@paysure.ai",
         action="SYSTEM_INITIALIZED",
         entity_type="SYSTEM",
         entity_id="PAYSURE-CORE",

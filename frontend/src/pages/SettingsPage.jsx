@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Key,
   Database,
-  RotateCcw,
   Sparkles,
   ExternalLink,
   Lock,
@@ -16,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { showToast, resetDemo } = useDemo();
+  const { showToast } = useDemo();
   const [paypalStatus, setPaypalStatus] = useState(null);
   const [testingConnection, setTestingConnection] = useState(false);
   const [clientId, setClientId] = useState('demo_sandbox_client_id_paysure');
@@ -237,25 +236,8 @@ export default function SettingsPage() {
         </div>
       </form>
 
-      {/* Danger Zone: Reset Demo Database */}
-      <div className="bg-white rounded-3xl border border-rose-200 p-6 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h4 className="text-sm font-bold text-rose-700 flex items-center gap-1.5">
-            <RotateCcw className="w-4 h-4" />
-            <span>Reset Demo Environment</span>
-          </h4>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Restores all 7 Judge Demo Scenarios and historical transactions back to pristine initial state.
-          </p>
-        </div>
-
-        <button
-          onClick={resetDemo}
-          className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 text-xs font-bold transition whitespace-nowrap self-start sm:self-auto"
-        >
-          Reset Demo Data
-        </button>
-      </div>
+      <div className="pb-4" />
     </div>
   );
 }
+

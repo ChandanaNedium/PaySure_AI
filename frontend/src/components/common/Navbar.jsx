@@ -115,14 +115,14 @@ export default function Navbar({ onNavigate, currentTab }) {
               className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition"
             >
               <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-brand-paypal to-blue-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                {user?.full_name ? user.full_name[0] : 'J'}
+                {user?.full_name ? user.full_name[0].toUpperCase() : 'M'}
               </div>
               <div className="text-left hidden sm:block">
                 <p className="text-xs font-bold text-slate-800 leading-none">
-                  {user?.full_name || 'Hackathon Judge'}
+                  {user?.full_name || 'Merchant Account'}
                 </p>
                 <p className="text-[10px] text-brand-paypal font-semibold uppercase mt-0.5">
-                  {user?.role || 'Merchant Admin'}
+                  {user?.role === 'customer' ? 'Customer Account' : 'Merchant Admin'}
                 </p>
               </div>
               <ChevronDown className="h-4 w-4 text-slate-400" />
@@ -131,8 +131,8 @@ export default function Navbar({ onNavigate, currentTab }) {
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50">
                 <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-900">{user?.full_name || 'Hackathon Judge'}</p>
-                  <p className="text-[11px] text-slate-500 truncate">{user?.email || 'judge@paysure.ai'}</p>
+                  <p className="text-xs font-bold text-slate-900">{user?.full_name || 'Merchant Account'}</p>
+                  <p className="text-[11px] text-slate-500 truncate">{user?.email || 'merchant@paysure.ai'}</p>
                 </div>
 
                 <div className="py-1">

@@ -55,12 +55,12 @@ def login(login_req: schemas.LoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/demo-login/{role}", response_model=schemas.Token)
 def demo_login(role: str, db: Session = Depends(get_db)):
-    """1-Click instant authentication for Hackathon Judges and evaluators"""
-    email = "judge@paysure.ai" if role == "merchant" else "customer@paysure.ai"
+    """1-Click instant authentication for accounts (merchant or customer)"""
+    email = "merchant@paysure.ai" if role == "merchant" else "customer@paysure.ai"
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user:
-        # Fallback to any user
-        user = db.query(models.User).first()
+        # Fallback to matching role or any user
+        user = db.query(models.User).filter(models.User.role == role).first() or db.query(models.User).first()
     
     token = create_access_token({"sub": user.email, "role": user.role})
     return {

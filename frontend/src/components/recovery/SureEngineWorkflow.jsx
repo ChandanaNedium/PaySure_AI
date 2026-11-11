@@ -39,7 +39,7 @@ export default function SureEngineWorkflow({ analysis, isAnalyzing }) {
         <Cpu className="h-10 w-10 text-slate-300 mx-auto mb-2" />
         <h4 className="text-sm font-semibold text-slate-700">No Transaction Selected</h4>
         <p className="text-xs text-slate-400 mt-1">
-          Select any transaction from the list or pick a Judge Scenario to run the SURE Engine.
+          Select any transaction from the Payment Queue or use the selector above to run the SURE Engine analysis.
         </p>
       </div>
     );
